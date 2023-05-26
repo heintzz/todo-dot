@@ -86,7 +86,7 @@ const Home: React.FC = () => {
         ) : (
           <Image src={EmptyActivity} alt="no activity" onClick={addActivity} />
         )}
-        {showAlert && <Alert msg="Activity berhasil dihapus" />}
+        {showAlert && <Alert msg="Activity berhasil dihapus" setShowAlert={() => setShowAlert(false)} />}
         {isModalOpen && <Modal type="activity" deleteActivity={deleteActivity} activity={activeActivity} />}
       </div>
     </div>
