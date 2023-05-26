@@ -6,8 +6,8 @@ import { ModalContext } from '@/components/context/ModalContext';
 import AddActivity from '@/assets/svgs/add_activity.svg';
 import DeleteActivity from '@/assets/svgs/delete_activity.svg';
 import EmptyActivity from '@/assets/svgs/empty_activity.svg';
-import InfoIcon from '@/assets/svgs/modal_info.svg';
 import getDate from '@/helpers/getDate';
+import Alert from '@/components/Alert';
 
 export interface Activity {
   id: number;
@@ -86,14 +86,7 @@ const Home: React.FC = () => {
         ) : (
           <Image src={EmptyActivity} alt="no activity" onClick={addActivity} />
         )}
-        {showAlert && (
-          <div className="fixed top-0 left-0 w-full h-full grid place-content-center bg-gray-500/75" onClick={() => setShowAlert(false)}>
-            <div className="flex gap-x-2 px-5 py-2 w-[490px] rounded-xl bg-white " onClick={(e) => e.stopPropagation()}>
-              <Image src={InfoIcon} alt="information icon" />
-              <p>Activity berhasil dihapus</p>
-            </div>
-          </div>
-        )}
+        {showAlert && <Alert msg="Activity berhasil dihapus" />}
         {isModalOpen && <Modal type="activity" deleteActivity={deleteActivity} activity={activeActivity} />}
       </div>
     </div>
