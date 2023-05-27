@@ -14,7 +14,7 @@ const Alert: React.FC<AlertProps> = ({ message: alertMessage, setShowAlert }) =>
 
   return (
     <div className="fixed top-0 left-0 w-full h-full grid place-content-center bg-gray-500/75" onClick={setShowAlert}>
-      <div className="flex gap-x-2 px-5 py-2 w-[490px] rounded-xl bg-white " onClick={preventBubbling}>
+      <div className="flex gap-x-2 px-5 py-3 w-[100%] sm:w-[490px] rounded-xl bg-white " onClick={preventBubbling}>
         <Image src={InfoIcon} alt="information icon" />
         <p>{alertMessage}</p>
       </div>
