@@ -13,6 +13,20 @@ export const getAllActivities = () => {
   });
 };
 
+export const sendNewActivity = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const res = await axios.post(activityEndpoint, {
+        title: 'New Activity',
+        email: 'uhuy@gmail.com',
+      });
+      resolve(res.data.data);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 export const removeActivity = (id: number) => {
   return new Promise(async (resolve, reject) => {
     try {

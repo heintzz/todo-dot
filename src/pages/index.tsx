@@ -8,8 +8,8 @@ import DeleteActivity from '@/assets/svgs/delete_activity.svg';
 import EmptyActivity from '@/assets/svgs/empty_activity.svg';
 import getDate from '@/helpers/getDate';
 import Alert from '@/components/Alert';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAllActivities, removeActivity } from '@/api/activity';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getAllActivities, removeActivity, sendNewActivity } from '@/api/activity';
 import axios from 'axios';
 
 export interface Activity {
@@ -40,30 +40,23 @@ const Home: React.FC<HomeProps> = (props) => {
     initialData: props.activities,
   });
 
-  const addActivity = async () => {
-    const newActivity = {
-      title: 'New Activity',
-      email: 'mantapgan@gmail.com',
-    };
-
-    try {
-      await axios.post('https://todo.api.devcode.gethired.id/activity-groups', newActivity);
-      queryClient.refetchQueries(['activities']);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const mutation = useMutation({
+    mutationFn: sendNewActivity,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+    },
+  });
 
   const deleteActivity = async (id: number) => {
     try {
-      await removeActivity(id);
-
+      const res = await removeActivity(id);
+      console.log(res);
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
       }, 3000);
 
-      queryClient.setQueryData<Activity[]>(['activities'], (prevActivities = []) => prevActivities?.filter((activity) => activity.id !== id));
+      queryClient.setQueryData<Activity[]>(['activities'], (prev) => (prev ? prev.filter((activity) => activity.id !== id) : prev));
     } catch (error) {
       console.log(error);
     }
@@ -79,7 +72,7 @@ const Home: React.FC<HomeProps> = (props) => {
       <div className="w-[1000px]">
         <div className="flex justify-between items-center my-10">
           <h1 className="font-bold text-[1.5rem] md:text-[2.25rem]">Activity</h1>
-          <Button cls="bg-[#16ABF8] text-white" clickHandler={addActivity}>
+          <Button cls="bg-[#16ABF8] text-white" clickHandler={mutation.mutate}>
             <Image src={AddActivity} alt="add activity icon" />
             <span>Tambah</span>
           </Button>
@@ -89,7 +82,7 @@ const Home: React.FC<HomeProps> = (props) => {
             {activities.map((activity) => {
               const { id, title, created_at } = activity;
               return (
-                <div key={id} className="flex flex-col justify-between w-[100%] md:min-w-[230px] min-h-[235px] rounded-xl bg-white p-6">
+                <div key={id} className="flex flex-col justify-between w-[100%] min-w-[200px] md:min-w-[230px] min-h-[235px] rounded-xl bg-white p-6">
                   <p className="font-bold text-[1.125rem] break-words">{title}</p>
                   <div className="flex justify-between">
                     <span className="font-light text-[#888888] text-[.875rem]">{getDate(created_at)}</span>
