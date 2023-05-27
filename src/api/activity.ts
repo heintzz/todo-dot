@@ -13,6 +13,17 @@ export const getAllActivities = () => {
   });
 };
 
+export const getAnActivity = (id: number | undefined) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const res = await axios.get(activityEndpoint + `/${id}`);
+      resolve(res.data);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 export const sendNewActivity = () => {
   return new Promise(async (resolve, reject) => {
     try {
