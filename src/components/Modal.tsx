@@ -4,25 +4,34 @@ import Image from 'next/image';
 import Button from './Button';
 import { ModalContext } from './context/ModalContext';
 import { Activity } from '@/pages';
+import { TodoItem } from '@/pages/detail/[id]';
 
-interface ModalType {
+interface IModalType {
   type: 'activity' | 'list';
-  deleteActivity: (id: number) => void;
-  activity: Activity | null;
+  deleteFn: (id: number) => void;
+}
+interface ActivityType extends IModalType {
+  item: Activity | null;
+}
+interface TodoType extends IModalType {
+  item: TodoItem | null;
 }
 
-const Modal: React.FC<ModalType> = ({ type, deleteActivity, activity }) => {
+type ModalProps = ActivityType | TodoType;
+
+const Modal: React.FC<ModalProps> = ({ type, deleteFn, item }) => {
   const inActivity = type === 'activity';
   const modalContext = useContext(ModalContext);
   const { closeModal } = modalContext!;
 
   const deleteCorrespondingActivity = () => {
     closeModal();
-    deleteActivity(activity?.id || 0);
+    deleteFn(item?.id || 0);
   };
 
-  const deleteCorrespondingItem = () => {
+  const deleteCorrespondingTodo = () => {
     closeModal();
+    deleteFn(item?.id || 0)
   };
 
   return (
@@ -30,13 +39,15 @@ const Modal: React.FC<ModalType> = ({ type, deleteActivity, activity }) => {
       <div className="flex flex-col items-center gap-y-5 max-w-[490px] min-h-[255px] p-10 bg-white rounded-xl" onClick={(e) => e.stopPropagation()}>
         <Image src={WarningDelete} alt="warning delete icon" />
         <p className="max-w-[373px] text-center">
-          Apakah anda yakin menghapus {type} <b>“{activity?.title}”?</b>
+          Apakah anda yakin menghapus {type}
+          <br></br>
+          <b className="break-words">“{item?.title}”?</b>
         </p>
         <div className="flex gap-x-5 mt-2">
           <Button cls="text-[#4A4A4A] bg-[#F4F4F4]" clickHandler={closeModal}>
             <span>Batal</span>
           </Button>
-          <Button cls="text-white bg-[#ED4C5C]" clickHandler={inActivity ? deleteCorrespondingActivity : deleteCorrespondingItem}>
+          <Button cls="text-white bg-[#ED4C5C]" clickHandler={inActivity ? deleteCorrespondingActivity : deleteCorrespondingTodo}>
             <span>Hapus</span>
           </Button>
         </div>
