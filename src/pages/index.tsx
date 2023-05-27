@@ -1,61 +1,77 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { ModalContext } from '@/components/context/ModalContext';
 import Image from 'next/image';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
-import { ModalContext } from '@/components/context/ModalContext';
 import AddActivity from '@/assets/svgs/add_activity.svg';
 import DeleteActivity from '@/assets/svgs/delete_activity.svg';
 import EmptyActivity from '@/assets/svgs/empty_activity.svg';
 import getDate from '@/helpers/getDate';
 import Alert from '@/components/Alert';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getAllActivities, removeActivity } from '@/api/activity';
+import axios from 'axios';
 
 export interface Activity {
   id: number;
   title: string;
-  itemList: Item[];
-  createdDate: Date;
+  created_at: Date;
 }
 
-interface Item {
-  id: number;
-  title: string;
-  is_active: isActiveType;
+interface HomeProps {
+  activities: Activity[];
 }
 
-type isActiveType = true | false;
+export const getStaticProps = async () => {
+  const activities = await getAllActivities();
+  return { props: { activities }, revalidate: 60 };
+};
 
-const Home: React.FC = () => {
+const Home: React.FC<HomeProps> = (props) => {
+  const queryClient = useQueryClient();
   const modalContext = useContext(ModalContext);
   const { isModalOpen, openModal } = modalContext!;
   const [showAlert, setShowAlert] = useState(false);
-  const [activities, setActivities] = useState<Activity[]>([]);
   const [activeActivity, setActiveActivity] = useState<Activity | null>(null);
 
-  const addActivity = () => {
-    const newActivity: Activity = {
-      id: Date.now(),
-      title: 'Daftar Belanja',
-      itemList: [],
-      createdDate: new Date(),
+  const { data: activities } = useQuery({
+    queryKey: ['activities'],
+    queryFn: getAllActivities,
+    initialData: props.activities,
+  });
+
+  const addActivity = async () => {
+    const newActivity = {
+      title: 'New Activity',
+      email: 'mantapgan@gmail.com',
     };
 
-    setActivities((prev: Activity[]) => [...prev, newActivity]);
+    try {
+      await axios.post('https://todo.api.devcode.gethired.id/activity-groups', newActivity);
+      queryClient.refetchQueries(['activities']);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const deleteActivity = (id: number | undefined): void => {
-    if (id) {
-      const filteredActivities = activities.filter((activity) => activity.id !== id);
-      setActivities(filteredActivities);
+  const deleteActivity = async (id: number) => {
+    try {
+      await removeActivity(id);
+
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
       }, 3000);
+
+      queryClient.setQueryData<Activity[]>(['activities'], (prevActivities = []) => prevActivities?.filter((activity) => activity.id !== id));
+    } catch (error) {
+      console.log(error);
     }
   };
 
-  const deleteActivityConfirmation = (act: Activity) => {
+  const deleteActivityConfirmation = (activity: Activity) => {
     openModal();
-    setActiveActivity(act);
+    setActiveActivity(activity);
   };
 
   return (
@@ -71,13 +87,13 @@ const Home: React.FC = () => {
         {activities.length > 0 ? (
           <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 pb-8">
             {activities.map((activity) => {
-              const { id, title, createdDate } = activity;
+              const { id, title, created_at } = activity;
               return (
                 <div key={id} className="flex flex-col justify-between w-[100%] md:min-w-[230px] min-h-[235px] rounded-xl bg-white p-6">
-                  <p className="font-bold text-[1.125rem]">{title}</p>
+                  <p className="font-bold text-[1.125rem] break-words">{title}</p>
                   <div className="flex justify-between">
-                    <span className="font-light text-[#888888] text-[.875rem]">{getDate(createdDate)}</span>
-                    <Image src={DeleteActivity} alt="delete activity icon" onClick={() => deleteActivityConfirmation(activity)} />
+                    <span className="font-light text-[#888888] text-[.875rem]">{getDate(created_at)}</span>
+                    <Image src={DeleteActivity} alt="delete activity icon" onClick={() => deleteActivityConfirmation(activity)} className="hover:cursor-pointer" />
                   </div>
                 </div>
               );
@@ -86,7 +102,7 @@ const Home: React.FC = () => {
         ) : (
           <Image src={EmptyActivity} alt="no activity" onClick={addActivity} />
         )}
-        {showAlert && <Alert msg="Activity berhasil dihapus" setShowAlert={() => setShowAlert(false)} />}
+        {showAlert && <Alert message="Activity berhasil dihapus" setShowAlert={() => setShowAlert(false)} />}
         {isModalOpen && <Modal type="activity" deleteActivity={deleteActivity} activity={activeActivity} />}
       </div>
     </div>

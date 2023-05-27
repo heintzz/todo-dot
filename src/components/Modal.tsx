@@ -6,8 +6,8 @@ import { ModalContext } from './context/ModalContext';
 import { Activity } from '@/pages';
 
 interface ModalType {
-  type: string;
-  deleteActivity: (id: number | undefined) => void;
+  type: 'activity' | 'list';
+  deleteActivity: (id: number) => void;
   activity: Activity | null;
 }
 
@@ -18,7 +18,7 @@ const Modal: React.FC<ModalType> = ({ type, deleteActivity, activity }) => {
 
   const deleteCorrespondingActivity = () => {
     closeModal();
-    deleteActivity(activity?.id);
+    deleteActivity(activity?.id || 0);
   };
 
   const deleteCorrespondingItem = () => {
@@ -30,7 +30,7 @@ const Modal: React.FC<ModalType> = ({ type, deleteActivity, activity }) => {
       <div className="flex flex-col items-center gap-y-5 max-w-[490px] min-h-[255px] p-10 bg-white rounded-xl" onClick={(e) => e.stopPropagation()}>
         <Image src={WarningDelete} alt="warning delete icon" />
         <p className="max-w-[373px] text-center">
-          Apakah anda yakin menghapus {inActivity ? 'activity' : 'list item'} <b>“{activity?.title}”?</b>
+          Apakah anda yakin menghapus {type} <b>“{activity?.title}”?</b>
         </p>
         <div className="flex gap-x-5 mt-2">
           <Button cls="text-[#4A4A4A] bg-[#F4F4F4]" clickHandler={closeModal}>
