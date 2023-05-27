@@ -14,9 +14,10 @@ const monthList = [
 ];
 
 const getDate = (dt: Date) => {
-  const date = dt.getDate();
-  const month = monthList[dt.getMonth()];
-  const year = dt.getFullYear();
+  const now = new Date(dt)
+  const date = now.getDate();
+  const month = monthList[now.getMonth()];
+  const year = now.getFullYear();
 
   return `${date} ${month} ${year}`;
 };
