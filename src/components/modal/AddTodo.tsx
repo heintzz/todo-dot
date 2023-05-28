@@ -68,7 +68,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
   const addTodo = () => {
     const newTodo = {
       activity_group_id,
-      priority: inputPriority,
+      priority: inputPriority === 'medium' ? 'normal' : inputPriority,
       title: input,
     };
 
@@ -78,7 +78,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
   const editTodo = () => {
     const editedTodo = {
       id: id as number,
-      priority: inputPriority,
+      priority: inputPriority === 'medium' ? 'normal' : inputPriority,
       title: input,
     };
 
