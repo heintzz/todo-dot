@@ -11,8 +11,9 @@ import EmptyTodo from '@/assets/svgs/empty_todo.svg';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { ModalContext } from '@/components/context/ModalContext';
-import Modal from '@/components/Modal';
-import { useQuery } from '@tanstack/react-query';
+import DeleteModal from '@/components/modal/Delete';
+import DeleteTodo from '@/assets/svgs/delete_activity.svg';
+import AddTodoModal from '@/components/modal/AddTodo';
 
 interface ActivityListType {
   id: number;
@@ -32,14 +33,16 @@ export interface TodoItem {
 
 interface DetailProps {
   activity: ActivityListType;
+  id: string;
 }
 
 type queryType = { id: string };
 
-const colorPalette: { [key: string]: string } = {
+export const colorPalette: { [key: string]: string } = {
   'very-high': 'bg-[#ED4C5C]',
   high: 'bg-[#FFCE31]',
   normal: 'bg-[#00A790]',
+  medium: 'bg-[#00A790]',
   low: 'bg-[#428BC1]',
   'very-low': 'bg-[#8942C1]',
 };
@@ -49,13 +52,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const id = parseInt(query.id);
   const activity = await getAnActivity(id);
 
-  return { props: { activity } };
+  return { props: { activity, id } };
 };
 
-const Detail: NextPage<DetailProps> = ({ activity }) => {
+const Detail: NextPage<DetailProps> = ({ activity, id: activity_group_id }) => {
   const router = useRouter();
   const modalContext = useContext(ModalContext);
-  const { isModalOpen, openModal, closeModal } = modalContext!;
+  const { showDeleteModal, openDeleteModal, openAddModal, showAddModal } = modalContext!;
   const { title, id, todo_items } = activity;
   const [isEdit, setIsEdit] = useState(false);
   const [input, setInput] = useState(title);
@@ -92,8 +95,14 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
 
   const deleteTodoConfirmation = (e: React.MouseEvent, todo: TodoItem) => {
     e.stopPropagation();
-    openModal();
+    openDeleteModal();
     setActiveTodo(todo);
+  };
+
+  const addTodoPopup = (todo?: TodoItem) => {
+    openAddModal();
+    if (todo?.id) setActiveTodo(todo);
+    else setActiveTodo(null);
   };
 
   return (
@@ -116,7 +125,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
             </div>
             <Image src={EditTitle} alt="edit title button" onClick={activateInputField} />
           </div>
-          <Button cls="bg-[#16ABF8] text-white" clickHandler={function () {}}>
+          <Button variant="primary" clickHandler={() => addTodoPopup()}>
             <Image src={AddList} alt="add activity icon" />
             <span>Tambah</span>
           </Button>
@@ -126,20 +135,24 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
             todo_items.map((todo) => {
               const { id, title, priority, is_active } = todo;
               return (
-                <div key={id} className="flex items-center gap-x-3 w-full p-7 bg-white rounded-xl shadow-md">
-                  <input type="checkbox" className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4" />
-                  <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[priority]}`}></div>
-                  <p>{title}</p>
-                  <Image src={EditTitle} alt="edit todo title button" className="hover:cursor-pointer" onClick={(e) => deleteTodoConfirmation(e, todo)} />
+                <div key={id} className="flex items-center jutify-between w-full p-7 bg-white rounded-xl shadow-md">
+                  <div className="flex gap-x-3 items-center">
+                    <input type="checkbox" className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4" />
+                    <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[priority]}`}></div>
+                    <p className={`${is_active !== 1 && 'line-through'}`}>{title}</p>
+                    <Image src={EditTitle} alt="edit title button" className="hover:cursor-pointer" onClick={() => addTodoPopup(todo)} />
+                  </div>
+                  <Image src={DeleteTodo} alt="delete todo button" className="hover:cursor-pointer ml-auto" onClick={(e) => deleteTodoConfirmation(e, todo)} />
                 </div>
               );
             })
           ) : (
-            <Image src={EmptyTodo} alt="empty todo icon" className="mx-auto hover:cursor-pointer" />
+            <Image src={EmptyTodo} alt="empty todo icon" className="mx-auto hover:cursor-pointer" onClick={() => addTodoPopup()} />
           )}
         </div>
       </div>
-      {isModalOpen && <Modal type="list" deleteFn={deleteTodo} item={activeTodo} />}
+      {showDeleteModal && <DeleteModal type="list" deleteFn={deleteTodo} item={activeTodo} />}
+      {showAddModal && <AddTodoModal todo={activeTodo} />}
     </div>
   );
 };

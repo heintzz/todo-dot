@@ -1,28 +1,43 @@
 import React, { useState } from 'react';
 
 interface ModalContextType {
-  isModalOpen: boolean;
-  openModal: () => void;
-  closeModal: () => void;
+  showDeleteModal: boolean;
+  showAddModal: boolean;
+  openDeleteModal: () => void;
+  closeDeleteModal: () => void;
+  openAddModal: () => void;
+  closeAddModal: () => void;
 }
 
 const ModalContext = React.createContext<ModalContextType | null>(null);
 
 const ModalContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showDeleteModal, setIsModalOpen] = useState(false);
+  const [showAddModal, setIsAddModalOpen] = useState(false);
 
-  const openModal = () => {
+  const openDeleteModal = () => {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
+  const closeDeleteModal = () => {
     setIsModalOpen(false);
   };
 
+  const openAddModal = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const closeAddModal = () => {
+    setIsAddModalOpen(false);
+  };
+
   const contextValue: ModalContextType = {
-    isModalOpen,
-    openModal,
-    closeModal,
+    showDeleteModal,
+    openDeleteModal,
+    closeDeleteModal,
+    showAddModal,
+    openAddModal,
+    closeAddModal,
   };
 
   return <ModalContext.Provider value={contextValue}>{children}</ModalContext.Provider>;

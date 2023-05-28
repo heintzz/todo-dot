@@ -6,7 +6,7 @@ import getDate from '@/helpers/getDate';
 
 import Image from 'next/image';
 import Button from '@/components/Button';
-import Modal from '@/components/Modal';
+import DeleteModal from '@/components/modal/Delete';
 import AddActivity from '@/assets/svgs/add_activity.svg';
 import DeleteActivity from '@/assets/svgs/delete_activity.svg';
 import EmptyActivity from '@/assets/svgs/empty_activity.svg';
@@ -32,7 +32,7 @@ const Home: React.FC<HomeProps> = (props) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const modalContext = useContext(ModalContext);
-  const { isModalOpen, openModal } = modalContext!;
+  const { showDeleteModal, openDeleteModal } = modalContext!;
   const [showAlert, setShowAlert] = useState(false);
   const [activeActivity, setActiveActivity] = useState<Activity | null>(null);
 
@@ -68,7 +68,7 @@ const Home: React.FC<HomeProps> = (props) => {
 
   const deleteActivityConfirmation = (e: React.MouseEvent, activity: Activity) => {
     e.stopPropagation();
-    openModal();
+    openDeleteModal();
     setActiveActivity(activity);
   };
 
@@ -77,7 +77,7 @@ const Home: React.FC<HomeProps> = (props) => {
       <div className="w-[1000px]">
         <div className="flex justify-between items-center my-10">
           <h1 className="font-bold text-[1.5rem] md:text-[2.25rem]">Activity</h1>
-          <Button cls="bg-[#16ABF8] text-white" clickHandler={mutation.mutate}>
+          <Button clickHandler={mutation.mutate}>
             <Image src={AddActivity} alt="add activity icon" />
             <span>Tambah</span>
           </Button>
@@ -105,7 +105,7 @@ const Home: React.FC<HomeProps> = (props) => {
           <Image src={EmptyActivity} alt="no activity" className="hover:cursor-pointer" onClick={() => mutation.mutate()} />
         )}
         {showAlert && <Alert message="Activity berhasil dihapus" setShowAlert={() => setShowAlert(false)} />}
-        {isModalOpen && <Modal type="activity" deleteFn={deleteActivity} item={activeActivity} />}
+        {showDeleteModal && <DeleteModal type="activity" deleteFn={deleteActivity} item={activeActivity} />}
       </div>
     </div>
   );
