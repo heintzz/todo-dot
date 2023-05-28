@@ -1,19 +1,23 @@
+import axios from 'axios';
 import React, { useContext, useState } from 'react';
 import Image from 'next/image';
-import { getAnActivity } from '@/api/activity';
 import { GetServerSidePropsContext, NextPage } from 'next';
+import { useRouter } from 'next/router';
+import { changeActivityName, getActivityDetail } from '@/api/activity';
+
+// SVGs
 import Button from '@/components/Button';
 import AddList from '@/assets/svgs/add_activity.svg';
 import EditTitle from '@/assets/svgs/edit_title.svg';
 import BackButton from '@/assets/svgs/back_button.svg';
 import EmptyTodo from '@/assets/svgs/empty_todo.svg';
-
-import axios from 'axios';
-import { useRouter } from 'next/router';
-import { ModalContext } from '@/components/context/ModalContext';
-import DeleteModal from '@/components/modal/Delete';
 import DeleteTodo from '@/assets/svgs/delete_activity.svg';
+
+import { ModalContext } from '@/components/context/ModalContext';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import AddTodoModal from '@/components/modal/AddTodo';
+import DeleteModal from '@/components/modal/Delete';
+import { removeTodo } from '@/api/todo';
 
 interface ActivityListType {
   id: number;
@@ -33,7 +37,6 @@ export interface TodoItem {
 
 interface DetailProps {
   activity: ActivityListType;
-  id: string;
 }
 
 type queryType = { id: string };
@@ -50,19 +53,44 @@ export const colorPalette: { [key: string]: string } = {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const query = context.params as queryType;
   const id = parseInt(query.id);
-  const activity = await getAnActivity(id);
+  const activity = await getActivityDetail(id);
 
-  return { props: { activity, id } };
+  return { props: { activity } };
 };
 
-const Detail: NextPage<DetailProps> = ({ activity, id: activity_group_id }) => {
+const Detail: NextPage<DetailProps> = ({ activity }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
   const modalContext = useContext(ModalContext);
   const { showDeleteModal, openDeleteModal, closeDeleteModal, openAddModal, showAddModal } = modalContext!;
+
   const { title, id, todo_items } = activity;
+  const activityId = parseInt(router.query.id as string);
+
   const [isEdit, setIsEdit] = useState(false);
   const [input, setInput] = useState(title);
   const [activeTodo, setActiveTodo] = useState<TodoItem | null>(null);
+
+  const query = useQuery({
+    queryKey: ['todos', activityId],
+    queryFn: () => getActivityDetail(activityId),
+    initialData: activity,
+  });
+
+  activity = query.data;
+
+  const editTitleMutation = useMutation({
+    mutationFn: changeActivityName,
+  });
+
+  const deleteTodoMutation = useMutation({
+    mutationFn: removeTodo,
+    onMutate: () => {
+      queryClient.invalidateQueries(['todos', activityId]);
+      closeDeleteModal();
+    },
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const target = e.target;
@@ -76,30 +104,14 @@ const Detail: NextPage<DetailProps> = ({ activity, id: activity_group_id }) => {
   };
 
   const deactivateInputField = (e: React.MouseEvent) => {
-    const newInput = input;
-    const saveNewTitle = async () => {
-      try {
-        const res = await axios.patch(process.env.ACTIVITY_ENDPOINT + `/${id}`, {
-          title: newInput,
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    setInput(newInput);
+    const newTitle = input;
+    setInput(newTitle);
     setIsEdit(false);
-    saveNewTitle();
+    editTitleMutation.mutate({ id, newTitle });
   };
 
   const deleteTodo = (id: number) => {
-    (async function deleteATodo() {
-      try {
-        const res = await axios.delete(`https://todo.api.devcode.gethired.id/todo-items/${id}`);
-        if (res.status === 200) closeDeleteModal();
-      } catch (error) {
-        console.log(error);
-      }
-    })();
+    deleteTodoMutation.mutate(id);
   };
 
   const deleteTodoConfirmation = (e: React.MouseEvent, todo: TodoItem) => {
@@ -115,16 +127,16 @@ const Detail: NextPage<DetailProps> = ({ activity, id: activity_group_id }) => {
   };
 
   return (
-    <div className="flex justify-center px-4 sm:px-8" onClick={deactivateInputField}>
+    <div className="flex justify-center px-4 sm:px-8 pb-8" onClick={deactivateInputField}>
       <div className="w-[1000px]">
         <div className="flex justify-between items-center my-10">
           <div className="flex items-center sm:gap-x-2">
             <Image src={BackButton} alt="back button button" className="hover:cursor-pointer" onClick={() => router.push('/')} />
-            <div className="font-bold text-[1.5rem] md:text-[2.25rem] pr-1 sm:pr-2" onClick={activateInputField}>
+            <div className="font-bold text-[1.25rem] sm:text-[1.5rem] md:text-[2.25rem] pr-1 sm:pr-2" onClick={activateInputField}>
               {isEdit ? (
                 <input
                   type="text"
-                  className="bg-transparent max-w-[300px] sm:max-w-[400px] lg:max-w-[500px] focus:ring-0 focus:outline-none w-fit border-b-2 border-black/70"
+                  className="bg-transparent max-w-[100px] sm:max-w-[400px] lg:max-w-[500px] focus:ring-0 focus:outline-none w-fit border-b-2 border-black/70"
                   value={input}
                   onChange={handleChange}
                 />

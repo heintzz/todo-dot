@@ -1,12 +1,14 @@
 import React, { useContext, useState } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { TodoItem, colorPalette } from '@/pages/detail/[id]';
 import { ModalContext } from '../context/ModalContext';
-import Image from 'next/image';
+import { addNewTodo, modifyTodo } from '@/api/todo';
+
 import Button from '../Button';
 import CloseButton from '@/assets/svgs/close_button.svg';
 import Dropdown from '@/assets/svgs/dropdown.svg';
-import axios from 'axios';
-import { useRouter } from 'next/router';
 
 const titleCase = (text: string) => {
   if (!text) return;
@@ -24,12 +26,15 @@ const kebabCase = (text: string) => {
 };
 
 const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
-  const {
-    query: { id: active_group_id },
-  } = useRouter();
+  const { query } = useRouter();
+  const queryClient = useQueryClient();
+
   const modalContext = useContext(ModalContext);
   const { closeAddModal } = modalContext!;
+
   const { title, priority, id } = todo || {};
+  const activity_group_id = parseInt(query.id as string);
+
   const [input, setInput] = useState(title || '');
   const [inputPriority, setInputPriority] = useState(priority || '');
   const [extend, setExtend] = useState(false);
@@ -46,37 +51,40 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
     setExtend(false);
   };
 
+  const createTodoMutation = useMutation({
+    mutationFn: addNewTodo,
+    onMutate: () => {
+      queryClient.invalidateQueries(['todos', activity_group_id]);
+      closeAddModal();
+    },
+  });
+
+  const editTodoMutation = useMutation({
+    mutationFn: modifyTodo,
+    onMutate: () => {
+      queryClient.invalidateQueries(['todos', activity_group_id]);
+      closeAddModal();
+    },
+  });
+
   const addTodo = () => {
     const newTodo = {
-      activity_group_id: active_group_id,
+      activity_group_id,
       priority: inputPriority,
       title: input,
     };
 
-    (async function addNewTodo() {
-      try {
-        const res = await axios.post('https://todo.api.devcode.gethired.id/todo-items', newTodo);
-        if (res.status === 201) closeAddModal();
-      } catch (error) {
-        console.log(error);
-      }
-    })();
+    createTodoMutation.mutate(newTodo);
   };
 
   const editTodo = () => {
     const editedTodo = {
+      id: id as number,
       priority: inputPriority,
       title: input,
     };
 
-    (async function addNewTodo() {
-      try {
-        const res = await axios.patch(`https://todo.api.devcode.gethired.id/todo-items/${id}`, editedTodo);
-        if (res.status === 200) closeAddModal();
-      } catch (error) {
-        console.log(error);
-      }
-    })();
+    editTodoMutation.mutate(editedTodo);
   };
 
   return (
@@ -108,7 +116,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
             role="button"
             onClick={() => setExtend((prev) => !prev)}
           >
-            {priority && <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[inputPriority]}`}></div>}
+            <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[inputPriority]}`}></div>
             <span>{titleCase(inputPriority) || 'Pilih prioritas'}</span>
             <Image src={Dropdown} alt="dropdown button" className={`ml-auto ${extend && 'rotate-180'}`} />
             {extend && (
@@ -125,7 +133,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
         </div>
         <hr />
         <div className="flex justify-end py-6 px-7">
-          <Button variant="primary" clickHandler={todo ? editTodo : addTodo} isDisable={input?.length === 0}>
+          <Button variant="primary" clickHandler={todo ? editTodo : addTodo} isDisable={input?.length === 0 || inputPriority?.length === 0}>
             Submit
           </Button>
         </div>

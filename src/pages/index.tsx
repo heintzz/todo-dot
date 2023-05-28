@@ -25,10 +25,10 @@ interface HomeProps {
 
 export const getStaticProps = async () => {
   const activities = await getAllActivities();
-  return { props: { activities }, revalidate: 60 };
+  return { props: { activities } };
 };
 
-const Home: React.FC<HomeProps> = (props) => {
+const Home: React.FC<HomeProps> = ({ activities }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const modalContext = useContext(ModalContext);
@@ -39,12 +39,12 @@ const Home: React.FC<HomeProps> = (props) => {
   const query = useQuery({
     queryKey: ['activities'],
     queryFn: getAllActivities,
-    initialData: props.activities,
+    initialData: activities,
   });
 
-  const activities: any = query.data;
+  activities = query.data;
 
-  const mutation = useMutation({
+  const createActivityMutation = useMutation({
     mutationFn: sendNewActivity,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] });
@@ -54,13 +54,11 @@ const Home: React.FC<HomeProps> = (props) => {
   const deleteActivity = async (id: number) => {
     try {
       const res = await removeActivity(id);
-      console.log(res);
+      queryClient.setQueryData<Activity[]>(['activities'], (prev) => (prev ? prev.filter((activity) => activity.id !== id) : prev));
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
       }, 3000);
-
-      queryClient.setQueryData<Activity[]>(['activities'], (prev) => (prev ? prev.filter((activity) => activity.id !== id) : prev));
     } catch (error) {
       console.log(error);
     }
@@ -77,7 +75,7 @@ const Home: React.FC<HomeProps> = (props) => {
       <div className="w-[1000px]">
         <div className="flex justify-between items-center my-10">
           <h1 className="font-bold text-[1.5rem] md:text-[2.25rem]">Activity</h1>
-          <Button clickHandler={mutation.mutate}>
+          <Button clickHandler={createActivityMutation.mutate}>
             <Image src={AddActivity} alt="add activity icon" />
             <span>Tambah</span>
           </Button>
@@ -102,7 +100,7 @@ const Home: React.FC<HomeProps> = (props) => {
             })}
           </div>
         ) : (
-          <Image src={EmptyActivity} alt="no activity" className="hover:cursor-pointer" onClick={() => mutation.mutate()} />
+          <Image src={EmptyActivity} alt="no activity" className="hover:cursor-pointer" onClick={() => createActivityMutation.mutate()} />
         )}
         {showAlert && <Alert message="Activity berhasil dihapus" setShowAlert={() => setShowAlert(false)} />}
         {showDeleteModal && <DeleteModal type="activity" deleteFn={deleteActivity} item={activeActivity} />}
