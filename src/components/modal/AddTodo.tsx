@@ -27,7 +27,6 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
   const {
     query: { id: active_group_id },
   } = useRouter();
-
   const modalContext = useContext(ModalContext);
   const { closeAddModal } = modalContext!;
   const { title, priority, id } = todo || {};

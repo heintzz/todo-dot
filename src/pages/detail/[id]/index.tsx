@@ -58,7 +58,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 const Detail: NextPage<DetailProps> = ({ activity, id: activity_group_id }) => {
   const router = useRouter();
   const modalContext = useContext(ModalContext);
-  const { showDeleteModal, openDeleteModal, openAddModal, showAddModal } = modalContext!;
+  const { showDeleteModal, openDeleteModal, closeDeleteModal, openAddModal, showAddModal } = modalContext!;
   const { title, id, todo_items } = activity;
   const [isEdit, setIsEdit] = useState(false);
   const [input, setInput] = useState(title);
@@ -91,7 +91,16 @@ const Detail: NextPage<DetailProps> = ({ activity, id: activity_group_id }) => {
     saveNewTitle();
   };
 
-  const deleteTodo = async (id: number) => {};
+  const deleteTodo = (id: number) => {
+    (async function deleteATodo() {
+      try {
+        const res = await axios.delete(`https://todo.api.devcode.gethired.id/todo-items/${id}`);
+        if (res.status === 200) closeDeleteModal();
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  };
 
   const deleteTodoConfirmation = (e: React.MouseEvent, todo: TodoItem) => {
     e.stopPropagation();
