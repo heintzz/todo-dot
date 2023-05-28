@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, { useContext, useState } from 'react';
 import Image from 'next/image';
 import { GetServerSidePropsContext, NextPage } from 'next';
@@ -18,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import AddTodoModal from '@/components/modal/AddTodo';
 import DeleteModal from '@/components/modal/Delete';
 import { removeTodo } from '@/api/todo';
+import axios from 'axios';
 
 interface ActivityListType {
   id: number;
@@ -59,17 +59,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 const Detail: NextPage<DetailProps> = ({ activity }) => {
-  const router = useRouter();
   const queryClient = useQueryClient();
-
+  const router = useRouter();
+  const activityId = parseInt(router.query.id as string);
   const modalContext = useContext(ModalContext);
   const { showDeleteModal, openDeleteModal, closeDeleteModal, openAddModal, showAddModal } = modalContext!;
 
-  const { title, id, todo_items } = activity;
-  const activityId = parseInt(router.query.id as string);
-
   const [isEdit, setIsEdit] = useState(false);
-  const [input, setInput] = useState(title);
+  const [input, setInput] = useState(activity.title);
   const [activeTodo, setActiveTodo] = useState<TodoItem | null>(null);
 
   const query = useQuery({
@@ -78,7 +75,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
     initialData: activity,
   });
 
-  activity = query.data;
+  const { todo_items } = query.data;
 
   const editTitleMutation = useMutation({
     mutationFn: changeActivityName,
@@ -86,7 +83,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
 
   const deleteTodoMutation = useMutation({
     mutationFn: removeTodo,
-    onMutate: () => {
+    onSettled: () => {
       queryClient.invalidateQueries(['todos', activityId]);
       closeDeleteModal();
     },
@@ -107,7 +104,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
     const newTitle = input;
     setInput(newTitle);
     setIsEdit(false);
-    editTitleMutation.mutate({ id, newTitle });
+    editTitleMutation.mutate({ id: activityId, newTitle });
   };
 
   const deleteTodo = (id: number) => {
@@ -124,6 +121,14 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
     openAddModal();
     if (todo?.id) setActiveTodo(todo);
     else setActiveTodo(null);
+  };
+
+  const changeCompleteStatus = async (id: number, title: string, isActive: boolean) => {
+    // const body = {
+    //   title,
+    //   is_active: !isActive,
+    // };
+    // await axios.patch(`https://todo.api.devcode.gethired.id/todo-items/${id}`, body);
   };
 
   return (
@@ -153,14 +158,15 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
         </div>
         <div className="flex flex-col gap-y-3">
           {todo_items.length > 0 ? (
-            todo_items.map((todo) => {
+            todo_items.map((todo: any) => {
               const { id, title, priority, is_active } = todo;
+              const isActive = is_active === 1 ? true : false;
               return (
                 <div key={id} className="flex items-center jutify-between w-full p-7 bg-white rounded-xl shadow-md">
                   <div className="flex gap-x-3 items-center">
-                    <input type="checkbox" className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4" />
+                    <input type="checkbox" className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4" onClick={() => changeCompleteStatus(id, title, isActive)} />
                     <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[priority]}`}></div>
-                    <p className={`${is_active !== 1 && 'line-through'}`}>{title}</p>
+                    <p className={`${!isActive && 'line-through'}`}>{title}</p>
                     <Image src={EditTitle} alt="edit title button" className="hover:cursor-pointer" onClick={() => addTodoPopup(todo)} />
                   </div>
                   <Image src={DeleteTodo} alt="delete todo button" className="hover:cursor-pointer ml-auto" onClick={(e) => deleteTodoConfirmation(e, todo)} />

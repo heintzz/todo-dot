@@ -26,14 +26,12 @@ const kebabCase = (text: string) => {
 };
 
 const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
-  const { query } = useRouter();
+  const router = useRouter();
   const queryClient = useQueryClient();
-
   const modalContext = useContext(ModalContext);
+  const activity_group_id = parseInt(router.query.id as string);
   const { closeAddModal } = modalContext!;
-
   const { title, priority, id } = todo || {};
-  const activity_group_id = parseInt(query.id as string);
 
   const [input, setInput] = useState(title || '');
   const [inputPriority, setInputPriority] = useState(priority || '');
@@ -53,7 +51,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
 
   const createTodoMutation = useMutation({
     mutationFn: addNewTodo,
-    onMutate: () => {
+    onSettled: () => {
       queryClient.invalidateQueries(['todos', activity_group_id]);
       closeAddModal();
     },
@@ -61,7 +59,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
 
   const editTodoMutation = useMutation({
     mutationFn: modifyTodo,
-    onMutate: () => {
+    onSettled: () => {
       queryClient.invalidateQueries(['todos', activity_group_id]);
       closeAddModal();
     },

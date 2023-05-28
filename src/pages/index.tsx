@@ -23,7 +23,7 @@ interface HomeProps {
   activities: Activity[];
 }
 
-export const getStaticProps = async () => {
+export const getServerSideProps = async () => {
   const activities = await getAllActivities();
   return { props: { activities } };
 };
