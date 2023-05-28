@@ -7,6 +7,7 @@ import AddList from '@/assets/svgs/add_activity.svg';
 import EditTitle from '@/assets/svgs/edit_title.svg';
 import BackButton from '@/assets/svgs/back_button.svg';
 import EmptyTodo from '@/assets/svgs/empty_todo.svg';
+
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { ModalContext } from '@/components/context/ModalContext';
@@ -38,9 +39,9 @@ type queryType = { id: string };
 const colorPalette: { [key: string]: string } = {
   'very-high': 'bg-[#ED4C5C]',
   high: 'bg-[#FFCE31]',
-  medium: 'bg-[#00A790]',
-  low: 'bg-[#00A790]',
-  'very-low': 'bg-[#00A790]',
+  normal: 'bg-[#00A790]',
+  low: 'bg-[#428BC1]',
+  'very-low': 'bg-[#8942C1]',
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -101,7 +102,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
         <div className="flex justify-between items-center my-10">
           <div className="flex items-center sm:gap-x-2">
             <Image src={BackButton} alt="back button button" className="hover:cursor-pointer" onClick={() => router.push('/')} />
-            <div className="font-bold sm:text-[1.5rem] md:text-[2.25rem] pr-1 sm:pr-2" onClick={activateInputField}>
+            <div className="font-bold text-[1.5rem] md:text-[2.25rem] pr-1 sm:pr-2" onClick={activateInputField}>
               {isEdit ? (
                 <input
                   type="text"
@@ -129,7 +130,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
                   <input type="checkbox" className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4" />
                   <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[priority]}`}></div>
                   <p>{title}</p>
-                  <button onClick={(e) => deleteTodoConfirmation(e, todo)}>hi</button>
+                  <Image src={EditTitle} alt="edit todo title button" className="hover:cursor-pointer" onClick={(e) => deleteTodoConfirmation(e, todo)} />
                 </div>
               );
             })
