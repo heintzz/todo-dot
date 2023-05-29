@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { GetServerSidePropsContext, NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -11,13 +11,19 @@ import EditTitle from '@/assets/svgs/edit_title.svg';
 import BackButton from '@/assets/svgs/back_button.svg';
 import EmptyTodo from '@/assets/svgs/empty_todo.svg';
 import DeleteTodo from '@/assets/svgs/delete_activity.svg';
+import SortTodo from '@/assets/svgs/sort_button.svg';
+import SortLatest from '@/assets/svgs/sort_latest.svg';
+import SortOldest from '@/assets/svgs/sort_oldest.svg';
+import SortUnfinished from '@/assets/svgs/unfinished.svg';
+import AlphaAsc from '@/assets/svgs/alpha_asc.svg';
+import AlphaDesc from '@/assets/svgs/alpha_desc.svg';
+import Checked from '@/assets/svgs/checked.svg';
 
 import { ModalContext } from '@/components/context/ModalContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import AddTodoModal from '@/components/modal/AddTodo';
 import DeleteModal from '@/components/modal/Delete';
 import { editCompletionStatus, removeTodo } from '@/api/todo';
-import axios from 'axios';
 
 interface ActivityListType {
   id: number;
@@ -50,6 +56,8 @@ export const colorPalette: { [key: string]: string } = {
   'very-low': 'bg-[#8942C1]',
 };
 
+const sortSVG = [SortLatest, SortOldest, AlphaDesc, AlphaAsc, SortUnfinished];
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const query = context.params as queryType;
   const id = parseInt(query.id);
@@ -68,6 +76,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
   const [isEdit, setIsEdit] = useState(false);
   const [input, setInput] = useState(activity.title);
   const [activeTodo, setActiveTodo] = useState<TodoItem | null>(null);
+  const [filter, setFilter] = useState({ onShow: false, variant: 'Terbaru' });
 
   const query = useQuery({
     queryKey: ['todos', activityId],
@@ -139,6 +148,18 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
     editCompleteMutation.mutate(body);
   };
 
+  const handleFilterChange = (filter?: string) => {
+    if (!filter) {
+      setFilter((prev) => {
+        return { ...prev, onShow: !prev.onShow };
+      });
+    } else {
+      setFilter((prev) => {
+        return { ...prev, onShow: !prev.onShow, variant: filter };
+      });
+    }
+  };
+
   return (
     <div className="flex justify-center px-4 sm:px-8 pb-8" onClick={deactivateInputField}>
       <div className="w-[1000px]">
@@ -159,10 +180,24 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
             </div>
             <Image src={EditTitle} alt="edit title button" onClick={activateInputField} />
           </div>
-          <Button variant="primary" clickHandler={() => addTodoPopup()}>
-            <Image src={AddList} alt="add activity icon" />
-            <span>Tambah</span>
-          </Button>
+
+          <div className="flex relative items-center gap-x-1">
+            <Image src={SortTodo} alt="sort todo button" role="button" onClick={() => handleFilterChange()} />
+            <Button variant="primary" clickHandler={() => addTodoPopup()}>
+              <Image src={AddList} alt="add activity icon" />
+              <span>Tambah</span>
+            </Button>
+            {filter.onShow && (
+              <div className="w-full absolute -bottom-[250px] bg-white rounded-md" role="button">
+                {['Terbaru', 'Terlama', 'A-Z', 'Z-A', 'Belum Selesai'].map((n, i) => (
+                  <div key={i} className={`px-4 py-3 flex gap-x-4 border border-bcGray ${i === 0 ? 'rounded-t-md' : i === 4 && 'rounded-b-md'}`} onClick={() => handleFilterChange()}>
+                    <Image src={sortSVG[i]} alt={n} className="w-[15px]" />
+                    <p>{n}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex flex-col gap-y-3">
           {todo_items.length > 0 ? (
@@ -172,7 +207,15 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
               return (
                 <div key={id} className="flex items-center jutify-between w-full p-7 bg-white rounded-xl shadow-md">
                   <div className="flex gap-x-3 items-center">
-                    <input type="checkbox" className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4" onClick={() => changeCompleteStatus(id, title, isActive)} />
+                    <label htmlFor="ceklis" className="relative cursor-pointer w-4 h-4">
+                      <input
+                        type="checkbox"
+                        id="ceklis"
+                        className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4"
+                        onClick={() => changeCompleteStatus(id, title, isActive)}
+                      />
+                      {!is_active ? <Image src={Checked} alt="checked icon" className="absolute outline outline-1 outline-primary bg-primary w-4 h-[17px] top-[1px] " /> : ''}
+                    </label>
                     <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[priority]}`}></div>
                     <p className={`${!isActive && 'line-through'}`}>{title}</p>
                     <Image src={EditTitle} alt="edit title button" className="hover:cursor-pointer" onClick={() => addTodoPopup(todo)} />

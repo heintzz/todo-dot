@@ -9,6 +9,7 @@ module.exports = {
         cancelWhite: '#F4F4F4',
         delete: '#ED4C5C',
         primary: '#16ABF8',
+        bcGray: '#E5E5E5',
       },
     },
   },

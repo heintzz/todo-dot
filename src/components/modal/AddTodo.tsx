@@ -104,13 +104,13 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
             value={input}
             onChange={handleChange}
             autoFocus
-            className="outline outline-1 outline-[#E5E5E5] focus:outline-[#16ABF8] text-black placeholder:text-[#A4A4A4] rounded-md p-4"
+            className="outline outline-1 outline-bcGray focus:outline-[#16ABF8] text-black placeholder:text-[#A4A4A4] rounded-md p-4"
           />
           <label htmlFor="nama_list" className="text-[.75rem] font-semibold mt-6 mb-2">
             PRIORITY
           </label>
           <div
-            className={`relative flex items-center gap-x-3 w-[205px] p-4 outline outline-1 outline-[#E5E5E5]  ${extend ? 'bg-cancelWhite rounded-t-md' : 'rounded-md'}`}
+            className={`relative flex items-center gap-x-3 w-[205px] p-4 outline outline-1 outline-bcGray  ${extend ? 'bg-cancelWhite rounded-t-md' : 'rounded-md'}`}
             role="button"
             onClick={() => setExtend((prev) => !prev)}
           >
@@ -120,7 +120,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
             {extend && (
               <div className="absolute w-full h-fit bg-white left-0 -bottom-[500%] rounded-b-md">
                 {['Very High', 'High', 'Medium', 'Low', 'Very Low'].map((priority, i) => (
-                  <div key={i} className={`flex items-center gap-x-3 p-4 outline outline-1 outline-[#E5E5E5] ${i === 4 && 'rounded-b-md'}`} onClick={(e) => changePriority(e, priority)}>
+                  <div key={i} className={`flex items-center gap-x-3 p-4 outline outline-1 outline-bcGray ${i === 4 && 'rounded-b-md'}`} onClick={(e) => changePriority(e, priority)}>
                     <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[kebabCase(priority)]}`}></div>
                     <div id="priority">{priority}</div>
                   </div>
