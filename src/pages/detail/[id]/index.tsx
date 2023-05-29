@@ -139,11 +139,12 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
     else setActiveTodo(null);
   };
 
-  const changeCompleteStatus = (id: number, title: string, isActive: boolean) => {
+  const changeCompleteStatus = (e: React.ChangeEvent<HTMLInputElement>, id: number, title: string) => {
+    const is_active = e.target.checked;
     const body = {
       id,
       title,
-      is_active: !isActive,
+      is_active,
     };
     editCompleteMutation.mutate(body);
   };
@@ -190,7 +191,11 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
             {filter.onShow && (
               <div className="w-full absolute -bottom-[250px] bg-white rounded-md" role="button">
                 {['Terbaru', 'Terlama', 'A-Z', 'Z-A', 'Belum Selesai'].map((n, i) => (
-                  <div key={i} className={`px-4 py-3 flex gap-x-4 border border-bcGray ${i === 0 ? 'rounded-t-md' : i === 4 && 'rounded-b-md'}`} onClick={() => handleFilterChange()}>
+                  <div
+                    key={i}
+                    className={`px-4 py-3 flex gap-x-4 border border-bcGray ${i === 0 ? 'rounded-t-md' : i === 4 && 'rounded-b-md'}`}
+                    onClick={() => handleFilterChange()}
+                  >
                     <Image src={sortSVG[i]} alt={n} className="w-[15px]" />
                     <p>{n}</p>
                   </div>
@@ -207,15 +212,34 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
               return (
                 <div key={id} className="flex items-center jutify-between w-full p-7 bg-white rounded-xl shadow-md">
                   <div className="flex gap-x-3 items-center">
-                    <label htmlFor="ceklis" className="relative cursor-pointer w-4 h-4" onClick={() => changeCompleteStatus(id, title, isActive)}>
-                      <input type="checkbox" id="ceklis" className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4" />
-                      {!is_active ? <Image src={Checked} alt="checked icon" className="absolute outline outline-1 outline-primary bg-primary w-4 h-[17px] top-[1px] " /> : ''}
+                    <label htmlFor={`ceklis-${id}`} className="relative cursor-pointer w-4 h-4 z-40">
+                      <input
+                        type="checkbox"
+                        id={`ceklis-${id}`}
+                        className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4"
+                        checked={isActive}
+                        onChange={(e) => changeCompleteStatus(e, id, title)}
+                      />
+                      {!is_active ? (
+                        <Image
+                          src={Checked}
+                          alt="checked icon"
+                          className="absolute outline outline-1 outline-primary bg-primary w-4 h-[17px] top-[1px]"
+                        />
+                      ) : (
+                        ''
+                      )}
                     </label>
                     <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[priority]}`}></div>
                     <p className={`${!isActive && 'line-through'}`}>{title}</p>
                     <Image src={EditTitle} alt="edit title button" className="hover:cursor-pointer" onClick={() => addTodoPopup(todo)} />
                   </div>
-                  <Image src={DeleteTodo} alt="delete todo button" className="hover:cursor-pointer ml-auto" onClick={(e) => deleteTodoConfirmation(e, todo)} />
+                  <Image
+                    src={DeleteTodo}
+                    alt="delete todo button"
+                    className="hover:cursor-pointer ml-auto"
+                    onClick={(e) => deleteTodoConfirmation(e, todo)}
+                  />
                 </div>
               );
             })
