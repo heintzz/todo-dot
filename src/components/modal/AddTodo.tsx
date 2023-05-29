@@ -51,7 +51,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
 
   const createTodoMutation = useMutation({
     mutationFn: addNewTodo,
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['todos', activity_group_id]);
       closeAddModal();
     },
@@ -59,7 +59,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
 
   const editTodoMutation = useMutation({
     mutationFn: modifyTodo,
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['todos', activity_group_id]);
       closeAddModal();
     },

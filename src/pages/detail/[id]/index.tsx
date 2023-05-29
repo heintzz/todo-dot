@@ -92,7 +92,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
 
   const deleteTodoMutation = useMutation({
     mutationFn: removeTodo,
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['todos', activityId]);
       closeDeleteModal();
     },
@@ -100,7 +100,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
 
   const editCompleteMutation = useMutation({
     mutationFn: editCompletionStatus,
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['todos', activityId]);
     },
   });
@@ -139,7 +139,7 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
     else setActiveTodo(null);
   };
 
-  const changeCompleteStatus = async (id: number, title: string, isActive: boolean) => {
+  const changeCompleteStatus = (id: number, title: string, isActive: boolean) => {
     const body = {
       id,
       title,
@@ -207,13 +207,8 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
               return (
                 <div key={id} className="flex items-center jutify-between w-full p-7 bg-white rounded-xl shadow-md">
                   <div className="flex gap-x-3 items-center">
-                    <label htmlFor="ceklis" className="relative cursor-pointer w-4 h-4">
-                      <input
-                        type="checkbox"
-                        id="ceklis"
-                        className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4"
-                        onClick={() => changeCompleteStatus(id, title, isActive)}
-                      />
+                    <label htmlFor="ceklis" className="relative cursor-pointer w-4 h-4" onClick={() => changeCompleteStatus(id, title, isActive)}>
+                      <input type="checkbox" id="ceklis" className="appearance-none cursor-pointer outline outline-1 outline-[#C7C7C7] w-4 h-4" />
                       {!is_active ? <Image src={Checked} alt="checked icon" className="absolute outline outline-1 outline-primary bg-primary w-4 h-[17px] top-[1px] " /> : ''}
                     </label>
                     <div className={`w-[9px] h-[9px] rounded-full ${colorPalette[priority]}`}></div>
