@@ -16,7 +16,7 @@ import { ModalContext } from '@/components/context/ModalContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import AddTodoModal from '@/components/modal/AddTodo';
 import DeleteModal from '@/components/modal/Delete';
-import { removeTodo } from '@/api/todo';
+import { editCompletionStatus, removeTodo } from '@/api/todo';
 import axios from 'axios';
 
 interface ActivityListType {
@@ -89,6 +89,13 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
     },
   });
 
+  const editCompleteMutation = useMutation({
+    mutationFn: editCompletionStatus,
+    onSettled: () => {
+      queryClient.invalidateQueries(['todos', activityId]);
+    },
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const target = e.target;
     const value = target.value;
@@ -124,11 +131,12 @@ const Detail: NextPage<DetailProps> = ({ activity }) => {
   };
 
   const changeCompleteStatus = async (id: number, title: string, isActive: boolean) => {
-    // const body = {
-    //   title,
-    //   is_active: !isActive,
-    // };
-    // await axios.patch(`https://todo.api.devcode.gethired.id/todo-items/${id}`, body);
+    const body = {
+      id,
+      title,
+      is_active: !isActive,
+    };
+    editCompleteMutation.mutate(body);
   };
 
   return (
