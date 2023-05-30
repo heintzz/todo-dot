@@ -86,7 +86,7 @@ const AddTodoModal: React.FC<{ todo: TodoItem | null }> = ({ todo }) => {
   };
 
   return (
-    <div className="fixed top-0 grid place-content-center w-full h-full bg-gray-500/75" onClick={closeAddModal}>
+    <div className="fixed z-50 top-0 grid place-content-center w-full h-full bg-gray-500/75" onClick={closeAddModal}>
       <div className="flex flex-col md:w-[800px] min-h-[400px] bg-white rounded-xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between pt-6 pb-5 px-7">
           <p className="font-semibold text-[1.125rem]">Tambah List Item</p>

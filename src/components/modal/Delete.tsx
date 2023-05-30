@@ -37,7 +37,7 @@ const DeleteModal: React.FC<ModalProps> = ({ type, deleteFn, item }) => {
   };
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full grid place-content-center p-5 bg-gray-500/75" onClick={closeDeleteModal}>
+    <div className="fixed z-50 top-0 left-0 w-full h-full grid place-content-center p-5 bg-gray-500/75" onClick={closeDeleteModal}>
       <div className="flex flex-col items-center gap-y-5 max-w-[490px] min-h-[255px] p-10 bg-white rounded-xl" onClick={(e) => e.stopPropagation()}>
         <Image src={WarningDelete} alt="warning delete icon" />
         <p className="max-w-[373px] text-center">

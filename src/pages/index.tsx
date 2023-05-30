@@ -24,7 +24,7 @@ interface HomeProps {
 }
 
 export const getServerSideProps = async () => {
-  const activities = await getAllActivities();
+  let activities = await getAllActivities();
   return { props: { activities } };
 };
 
@@ -93,7 +93,12 @@ const Home: React.FC<HomeProps> = ({ activities }) => {
                   <p className="font-bold text-[1.125rem] break-words">{title}</p>
                   <div className="flex justify-between">
                     <span className="font-light text-[#888888] text-[.875rem] hover:cursor-text">{getDate(created_at)}</span>
-                    <Image src={DeleteActivity} alt="delete activity icon" className="hover:cursor-pointer" onClick={(e) => deleteActivityConfirmation(e, activity)} />
+                    <Image
+                      src={DeleteActivity}
+                      alt="delete activity icon"
+                      className="hover:cursor-pointer"
+                      onClick={(e) => deleteActivityConfirmation(e, activity)}
+                    />
                   </div>
                 </div>
               );
